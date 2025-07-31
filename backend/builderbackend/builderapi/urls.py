@@ -5,7 +5,8 @@ from .views import (
     register, verify_otp, resend_otp, login, logout, profile, dashboard_analytics,
     search_content, search_suggestions, popular_searches,
     customer_signup, customer_login, customer_verify_otp, customer_profile, customer_logout,
-    WebsiteViewSet, BlogPostViewSet, ProductViewSet, OrderViewSet, CartViewSet
+    WebsiteViewSet, BlogPostViewSet, ProductViewSet, OrderViewSet, CartViewSet,
+    testimonials, featured_testimonials, testimonial_detail, approve_testimonial, feature_testimonial
 )
 
 router = DefaultRouter()
@@ -39,6 +40,13 @@ urlpatterns = [
     path('customer-auth/verify-otp/', customer_verify_otp, name='customer_verify_otp'),
     path('customer-auth/profile/', customer_profile, name='customer_profile'),
     path('customer-auth/logout/', customer_logout, name='customer_logout'),
+    
+    # Testimonial endpoints
+    path('testimonials/', testimonials, name='testimonials'),
+    path('testimonials/featured/', featured_testimonials, name='featured_testimonials'),
+    path('testimonials/<int:pk>/', testimonial_detail, name='testimonial_detail'),
+    path('testimonials/<int:pk>/approve/', approve_testimonial, name='approve_testimonial'),
+    path('testimonials/<int:pk>/feature/', feature_testimonial, name='feature_testimonial'),
     
     # Include router URLs
     path('', include(router.urls)),

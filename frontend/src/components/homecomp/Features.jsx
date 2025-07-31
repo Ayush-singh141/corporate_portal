@@ -5,7 +5,7 @@ import MaskedDiv from "../ui/masked-div"
 function MaksedDivDemo() {
     return (
         <div className="items-between m-auto mt-40 flex max-w-5xl flex-wrap justify-between gap-5">
-            <MaskedDiv maskType="type-1" size={0.45} className="my-4">
+            <MaskedDiv maskType="type-2" size={0.45}  className="my-4">
                 <video
                     className="cursor-pointer transition-all duration-300 hover:scale-105"
                     autoPlay
@@ -13,7 +13,7 @@ function MaksedDivDemo() {
                     muted
                 >
                     <source
-                        src="https://videos.pexels.com/video-files/7710243/7710243-uhd_2560_1440_30fps.mp4"
+                    src="https://videos.pexels.com/video-files/33187808/14143395_2560_1440_25fps.mp4"
                         type="video/mp4"
                     />
                 </video>
@@ -39,8 +39,8 @@ function MaksedDivDemo() {
                     muted
                 >
                     <source
-                        src="https://videos.pexels.com/video-files/18069166/18069166-uhd_2560_1440_24fps.mp4"
                         type="video/mp4"
+                        src="https://videos.pexels.com/video-files/10130349/10130349-hd_1920_1080_30fps.mp4"
                     />
                 </video>
             </MaskedDiv>

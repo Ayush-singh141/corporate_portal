@@ -224,3 +224,31 @@ class Cart(models.Model):
     @property
     def total_price(self):
         return self.product_price * self.quantity
+
+class Testimonial(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    ]
+    
+    name = models.CharField(max_length=200)
+    email = models.EmailField()
+    company = models.CharField(max_length=200, blank=True)
+    role = models.CharField(max_length=200, blank=True)
+    message = models.TextField()
+    rating = models.IntegerField(choices=[(i, i) for i in range(1, 6)], default=5)
+    avatar = models.URLField(blank=True)
+    
+    # Admin fields
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    is_featured = models.BooleanField(default=False)
+    
+    createdAt = models.DateTimeField(auto_now_add=True)
+    updatedAt = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-createdAt']
+    
+    def __str__(self):
+        return f"{self.name} - {self.rating} stars"

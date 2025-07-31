@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
-from .models import User, Website, BlogPost, Product, Order, Cart, OTPVerification
+from .models import User, Website, BlogPost, Product, Order, Cart, OTPVerification, Testimonial
 import random
 import string
 
@@ -111,3 +111,39 @@ class CheckoutSerializer(serializers.Serializer):
     customerZipCode = serializers.CharField(max_length=20)
     websiteSlug = serializers.CharField(max_length=200)
     websiteName = serializers.CharField(max_length=200)
+
+class TestimonialSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Testimonial
+        fields = ['id', 'name', 'email', 'company', 'role', 'message', 'rating', 'avatar', 'status', 'is_featured', 'createdAt', 'updatedAt']
+        read_only_fields = ['id', 'status', 'is_featured', 'createdAt', 'updatedAt']
+    
+    def validate_rating(self, value):
+        if value < 1 or value > 5:
+            raise serializers.ValidationError('Rating must be between 1 and 5')
+        return value
+    
+    def validate_message(self, value):
+        if len(value.strip()) < 10:
+            raise serializers.ValidationError('Message must be at least 10 characters long')
+        return value.strip()
+
+class TestimonialCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Testimonial
+        fields = ['name', 'email', 'company', 'role', 'message', 'rating', 'avatar']
+    
+    def validate_rating(self, value):
+        if value < 1 or value > 5:
+            raise serializers.ValidationError('Rating must be between 1 and 5')
+        return value
+    
+    def validate_message(self, value):
+        if len(value.strip()) < 10:
+            raise serializers.ValidationError('Message must be at least 10 characters long')
+        return value.strip()
+    
+    def create(self, validated_data):
+        # Auto-approve testimonials for now, can be changed to pending for moderation
+        validated_data['status'] = 'approved'
+        return super().create(validated_data)

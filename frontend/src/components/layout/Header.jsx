@@ -10,7 +10,6 @@ function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [scrolled, setScrolled] = useState(false);
-  const [activeNav, setActiveNav] = useState(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
 
   useEffect(() => {
@@ -69,7 +68,7 @@ function Header() {
     },
     {
       name: 'Blogs',
-      path: '/blog-manager',
+      path: '/content-editor',
       subItems: [
         { name: 'Blog Manager', path: '/blog-manager' },
         { name: 'Content Editor', path: '/content-editor' },
@@ -86,7 +85,6 @@ function Header() {
           <Link 
             to="/" 
             className="flex items-center group"
-            onMouseEnter={() => setActiveNav(null)}
           >
             <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-lg flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-105">
               <span className="text-white font-bold text-lg">CP</span>
@@ -94,39 +92,16 @@ function Header() {
             <div className="ml-3 h-6 w-px bg-gray-200"></div>
           </Link>
 
-          {/* Desktop Navigation with dropdowns */}
+          {/* Desktop Navigation without dropdowns */}
           <nav className="hidden md:flex items-center space-x-1">
-            {navItems.map((item, index) => (
-              <div 
+            {navItems.map((item) => (
+              <Link
                 key={item.path}
-                className="relative"
-                onMouseEnter={() => setActiveNav(index)}
-                onMouseLeave={() => setActiveNav(null)}
+                to={item.path}
+                className="flex items-center px-4 py-2.5 rounded-lg transition-all duration-200 text-gray-600 hover:text-blue-500"
               >
-                <Link
-                  to={item.path}
-                  className={`flex items-center px-4 py-2.5 rounded-lg transition-all duration-200 ${activeNav === index ? 'text-blue-600' : 'text-gray-600 hover:text-blue-500'}`}
-                >
-                  <span className="font-medium">{item.name}</span>
-                  <ChevronDown className={`ml-1 w-4 h-4 transition-transform duration-200 ${activeNav === index ? 'rotate-180 text-blue-600' : 'text-gray-400'}`} />
-                </Link>
-
-                {/* Dropdown menu */}
-                {activeNav === index && (
-                  <div className="absolute left-0 mt-1 w-56 origin-top-right bg-white rounded-xl shadow-lg ring-1 ring-black/5 overflow-hidden transition-all duration-200">
-                    {item.subItems.map((subItem) => (
-                      <Link
-                        key={subItem.path}
-                        to={subItem.path}
-                        className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-150 border-b border-gray-100 last:border-0"
-                        onClick={() => setActiveNav(null)}
-                      >
-                        {subItem.name}
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </div>
+                <span className="font-medium">{item.name}</span>
+              </Link>
             ))}
           </nav>
 
@@ -276,7 +251,7 @@ function Header() {
           }
         }
         .animate-slideDown {
-          animation: slideDown 0.25s ease-out;
+          navigation: slideDown 0.25s ease-out;
         }
       `}</style>
     </header>

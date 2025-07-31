@@ -36,6 +36,7 @@ import NotFound from './components/NotFound'
 import './utils/testData'
 import CustomerOrders from './pages/CustomerOrders'
 import SavedItems from './pages/SavedItems'
+import Testimonials from './pages/Testimonials'
 
 // Customer Auth Wrapper Component
 function CustomerAuthWrapper({ children }) {
@@ -72,6 +73,7 @@ function App() {
             <Route path="/search" element={<ProtectedRoute><Layout><Search /></Layout></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Layout><CustomerProfile /></Layout></ProtectedRoute>} />
             <Route path="/orders" element={<ProtectedRoute><Layout><OrdersDashboard /></Layout></ProtectedRoute>} />
+            <Route path="/testimonials" element={<ProtectedRoute><Layout><Testimonials /></Layout></ProtectedRoute>} />
             <Route path="/api-test" element={<ProtectedRoute><Layout><ApiTest /></Layout></ProtectedRoute>} />
             
             {/* User Website Routes - WITHOUT Layout (Independent websites with Customer Auth) */}

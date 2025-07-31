@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Testimonials Frontend</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; }
+        .success { color: green; }
+        .error { color: red; }
+        .loading { color: blue; }
+        pre { background: #f5f5f5; padding: 10px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Frontend Testimonials API Test</h1>
+    
+    <div class="test-section">
+        <h2>1. Test Featured Testimonials (for Home page)</h2>
+        <div id="featured-result" class="loading">Loading...</div>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. Test All Testimonials (for Testimonials page)</h2>
+        <div id="all-result" class="loading">Loading...</div>
+    </div>
+    
+    <div class="test-section">
+        <h2>3. Test Add Testimonial</h2>
+        <button onclick="testAddTestimonial()">Add Test Testimonial</button>
+        <div id="add-result"></div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:8000/api';
+
+        // Simple API service for testing
+        class TestApiService {
+            async request(endpoint, options = {}) {
+                const url = `${API_BASE_URL}${endpoint}`;
+                const config = {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...options.headers,
+                    },
+                    ...options,
+                };
+
+                try {
+                    const response = await fetch(url, config);
+                    const data = await response.json();
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    return data;
+                } catch (error) {
+                    console.error('API request failed:', error);
+                    throw error;
+                }
+            }
+
+            get(endpoint) {
+                return this.request(endpoint);
+            }
+
+            post(endpoint, data) {
+                return this.request(endpoint, {
+                    method: 'POST',
+                    body: JSON.stringify(data),
+                });
+            }
+        }
+
+        const api = new TestApiService();
+
+        // Test featured testimonials
+        async function testFeaturedTestimonials() {
+            try {
+                const response = await api.get('/testimonials/featured?limit=3');
+                document.getElementById('featured-result').innerHTML = `
+                    <div class="success">✅ Success! Found ${response.total} featured testimonials</div>
+                    <pre>${JSON.stringify(response, null, 2)}</pre>
+                `;
+            } catch (error) {
+                document.getElementById('featured-result').innerHTML = `
+                    <div class="error">❌ Error: ${error.message}</div>
+                `;
+            }
+        }
+
+        // Test all testimonials
+        async function testAllTestimonials() {
+            try {
+                const response = await api.get('/testimonials?page=1&limit=5');
+                document.getElementById('all-result').innerHTML = `
+                    <div class="success">✅ Success! Found ${response.total} total testimonials (showing ${response.testimonials.length})</div>
+                    <pre>${JSON.stringify(response, null, 2)}</pre>
+                `;
+            } catch (error) {
+                document.getElementById('all-result').innerHTML = `
+                    <div class="error">❌ Error: ${error.message}</div>
+                `;
+            }
+        }
+
+        // Test add testimonial
+        async function testAddTestimonial() {
+            const testData = {
+                name: "Frontend Test User",
+                email: "frontend.test@example.com",
+                company: "Test Company",
+                role: "QA Tester",
+                message: "This is a test testimonial created from the frontend test page. The API integration is working perfectly!",
+                rating: 5
+            };
+
+            try {
+                document.getElementById('add-result').innerHTML = '<div class="loading">Adding testimonial...</div>';
+                const response = await api.post('/testimonials', testData);
+                document.getElementById('add-result').innerHTML = `
+                    <div class="success">✅ Success! Testimonial added</div>
+                    <pre>${JSON.stringify(response, null, 2)}</pre>
+                `;
+            } catch (error) {
+                document.getElementById('add-result').innerHTML = `
+                    <div class="error">❌ Error: ${error.message}</div>
+                `;
+            }
+        }
+
+        // Run tests on page load
+        window.onload = function() {
+            testFeaturedTestimonials();
+            testAllTestimonials();
+        };
+    </script>
+</body>
+</html>

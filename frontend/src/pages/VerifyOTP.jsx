@@ -1,12 +1,21 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate, useLocation, useParams } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { useCustomerAuth } from '../contexts/CustomerAuthContext'
 import { authService } from '../services/authService'
 import { websiteService } from '../services/websiteService'
 import Button from '../components/ui/Button'
 import LoadingSpinner from '../components/ui/LoadingSpinner'
 import { Mail, ArrowLeft, RefreshCw, CheckCircle, AlertCircle } from 'lucide-react'
+
+// Safe hook to use CustomerAuth only when available
+function useSafeCustomerAuth() {
+  try {
+    const { useCustomerAuth } = require('../contexts/CustomerAuthContext')
+    return useCustomerAuth()
+  } catch (error) {
+    return null
+  }
+}
 
 function VerifyOTP() {
   const navigate = useNavigate()
@@ -18,9 +27,19 @@ function VerifyOTP() {
   
   // Use appropriate auth context
   const corporateAuth = useAuth()
-  const customerAuth = useCustomerAuth()
   
-  const authContext = isCustomerVerification ? customerAuth : corporateAuth
+  // Only use customer auth if we're in customer verification mode
+  let customerAuth = null
+  try {
+    if (isCustomerVerification) {
+      customerAuth = useCustomerAuth()
+    }
+  } catch (error) {
+    // CustomerAuthProvider not available, use corporate auth
+    console.warn('CustomerAuthProvider not available, falling back to corporate auth')
+  }
+  
+  const authContext = isCustomerVerification && customerAuth ? customerAuth : corporateAuth
   const { verifyOTP, loading, error, clearError } = authContext
   
   const [website, setWebsite] = useState(null)

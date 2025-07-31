@@ -11,11 +11,11 @@ from django.db.models import Q
 import random
 import string
 
-from .models import User, Website, BlogPost, Product, Order, Cart, OTPVerification
+from .models import User, Website, BlogPost, Product, Order, Cart, OTPVerification, Testimonial
 from .serializers import (
     UserRegistrationSerializer, UserLoginSerializer, OTPVerificationSerializer,
     UserSerializer, WebsiteSerializer, BlogPostSerializer, ProductSerializer,
-    OrderSerializer, CartSerializer, CheckoutSerializer
+    OrderSerializer, CartSerializer, CheckoutSerializer, TestimonialSerializer, TestimonialCreateSerializer
 )
 from .email_utils import send_otp_email, send_welcome_email
 
@@ -929,3 +929,141 @@ def customer_logout(request):
                 'message': 'Logout successful'
             }
         }, status=status.HTTP_200_OK)
+
+# Testimonial Views
+@api_view(['GET', 'POST'])
+@permission_classes([AllowAny])
+def testimonials(request):
+    """Get all testimonials or create a new one"""
+    if request.method == 'GET':
+        # Get query parameters
+        page = int(request.GET.get('page', 1))
+        limit = int(request.GET.get('limit', 10))
+        status_filter = request.GET.get('status', 'approved')
+        
+        # Calculate offset
+        offset = (page - 1) * limit
+        
+        # Filter testimonials
+        testimonials_query = Testimonial.objects.filter(status=status_filter)
+        total_count = testimonials_query.count()
+        
+        # Get paginated results
+        testimonials = testimonials_query[offset:offset + limit]
+        
+        # Serialize data
+        serializer = TestimonialSerializer(testimonials, many=True)
+        
+        # Calculate pagination info
+        total_pages = (total_count + limit - 1) // limit
+        
+        return Response({
+            'testimonials': serializer.data,
+            'total': total_count,
+            'page': page,
+            'limit': limit,
+            'totalPages': total_pages,
+            'hasNext': page < total_pages,
+            'hasPrev': page > 1
+        })
+    
+    elif request.method == 'POST':
+        serializer = TestimonialCreateSerializer(data=request.data)
+        if serializer.is_valid():
+            testimonial = serializer.save()
+            return Response({
+                'success': True,
+                'message': 'Thank you for your testimonial! It has been submitted successfully.',
+                'testimonial': TestimonialSerializer(testimonial).data
+            }, status=status.HTTP_201_CREATED)
+        
+        return Response({
+            'success': False,
+            'errors': serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def featured_testimonials(request):
+    """Get featured testimonials for home page"""
+    limit = int(request.GET.get('limit', 5))
+    
+    # Get featured testimonials first, then fill with regular approved ones
+    featured = Testimonial.objects.filter(status='approved', is_featured=True)[:limit]
+    
+    if featured.count() < limit:
+        # Fill remaining slots with regular approved testimonials
+        remaining_count = limit - featured.count()
+        regular = Testimonial.objects.filter(
+            status='approved', 
+            is_featured=False
+        ).order_by('-createdAt')[:remaining_count]
+        
+        # Combine featured and regular testimonials
+        testimonials = list(featured) + list(regular)
+    else:
+        testimonials = list(featured)
+    
+    serializer = TestimonialSerializer(testimonials, many=True)
+    
+    return Response({
+        'testimonials': serializer.data,
+        'total': len(testimonials)
+    })
+
+@api_view(['GET', 'PUT', 'DELETE'])
+@permission_classes([IsAuthenticated])
+def testimonial_detail(request, pk):
+    """Get, update, or delete a specific testimonial (admin only)"""
+    try:
+        testimonial = Testimonial.objects.get(pk=pk)
+    except Testimonial.DoesNotExist:
+        return Response({'error': 'Testimonial not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    if request.method == 'GET':
+        serializer = TestimonialSerializer(testimonial)
+        return Response(serializer.data)
+    
+    elif request.method == 'PUT':
+        serializer = TestimonialSerializer(testimonial, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    elif request.method == 'DELETE':
+        testimonial.delete()
+        return Response({'message': 'Testimonial deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def approve_testimonial(request, pk):
+    """Approve a testimonial (admin only)"""
+    try:
+        testimonial = Testimonial.objects.get(pk=pk)
+        testimonial.status = 'approved'
+        testimonial.save()
+        
+        return Response({
+            'message': 'Testimonial approved successfully',
+            'testimonial': TestimonialSerializer(testimonial).data
+        })
+    except Testimonial.DoesNotExist:
+        return Response({'error': 'Testimonial not found'}, status=status.HTTP_404_NOT_FOUND)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def feature_testimonial(request, pk):
+    """Toggle featured status of a testimonial (admin only)"""
+    try:
+        testimonial = Testimonial.objects.get(pk=pk)
+        testimonial.is_featured = not testimonial.is_featured
+        testimonial.save()
+        
+        action = 'featured' if testimonial.is_featured else 'unfeatured'
+        return Response({
+            'message': f'Testimonial {action} successfully',
+            'testimonial': TestimonialSerializer(testimonial).data
+        })
+    except Testimonial.DoesNotExist:
+        return Response({'error': 'Testimonial not found'}, status=status.HTTP_404_NOT_FOUND)
